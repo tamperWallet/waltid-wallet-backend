@@ -1,5 +1,6 @@
 package id.walt.issuer.backend
 
+import fi.tuni.microblock.edclexcel2ebsi.CredentialLib
 import com.google.common.cache.CacheBuilder
 import id.walt.auditor.Auditor
 import id.walt.auditor.SignaturePolicy
@@ -47,6 +48,7 @@ object IssuerManager {
 
   val reqCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build<String, IssuanceRequest>()
   lateinit var issuerDid: String;
+  val credentialLib = CredentialLib()
 
   init {
     WalletContextManager.runWith(issuerContext) {
@@ -55,14 +57,19 @@ object IssuerManager {
   }
 
   fun listIssuableCredentialsFor(user: String): Issuables {
-    return Issuables(
-      credentials = mapOf(
-      Pair("VerifiableId", IssuableCredential("VerifiableId", "Verifiable ID document", mapOf(Pair("credentialSubject", (VcTemplateManager.loadTemplate("VerifiableId") as VerifiableId).credentialSubject!!)))),
+    val credentials = HashMap<String, IssuableCredential>()
+    for ( title in credentialLib.listCredentialsForStudent(user) ) {
+      val credential = IssuableCredential( type = "VerifiableDiploma", description = title )
+      credentials.put( title, credential )
+    }
+
+    return Issuables( credentials = credentials )
+      /*Pair("VerifiableId", IssuableCredential("VerifiableId", "Verifiable ID document", mapOf(Pair("credentialSubject", (VcTemplateManager.loadTemplate("VerifiableId") as VerifiableId).credentialSubject!!)))),
       Pair("VerifiableDiploma", IssuableCredential("VerifiableDiploma", "Verifiable diploma", mapOf(Pair("credentialSubject", (VcTemplateManager.loadTemplate("VerifiableDiploma") as VerifiableDiploma).credentialSubject!!)))),
       Pair("VerifiableVaccinationCertificate", IssuableCredential("VerifiableVaccinationCertificate", "Verifiable vaccination certificate", mapOf(Pair("credentialSubject", (VcTemplateManager.loadTemplate("VerifiableVaccinationCertificate") as VerifiableVaccinationCertificate).credentialSubject!!)))),
       Pair("ProofOfResidence", IssuableCredential("ProofOfResidence", "Proof of residence", mapOf(Pair("credentialSubject", (VcTemplateManager.loadTemplate("ProofOfResidence") as ProofOfResidence).credentialSubject!!))))
     )
-    )
+    )*/
   }
 
   fun newIssuanceRequest(user: String, selectedIssuables: Issuables): SIOPv2Request {
