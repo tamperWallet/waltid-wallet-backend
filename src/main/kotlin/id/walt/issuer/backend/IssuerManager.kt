@@ -1,6 +1,7 @@
 package id.walt.issuer.backend
 
 import fi.tuni.microblock.edclexcel2ebsi.CredentialLib
+import fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
 import com.google.common.cache.CacheBuilder
 import id.walt.auditor.Auditor
 import id.walt.auditor.SignaturePolicy
@@ -53,6 +54,7 @@ object IssuerManager {
   init {
     WalletContextManager.runWith(issuerContext) {
       issuerDid = DidService.listDids().firstOrNull() ?: DidService.create(DidMethod.key)
+      //issuerDid = credentialLib.getIssuerDid()
     }
   }
 
@@ -102,12 +104,13 @@ object IssuerManager {
         //Auditor.getService().verify(vp_token.encode(), listOf(SignaturePolicy())).overallStatus
         true
       ) {
-        issuanceReq.selectedIssuables.credentials.values.map {
-          Signatory.getService().issue(it.type,
+        //issuanceReq.selectedIssuables.credentials.
+        issuanceReq.selectedIssuables.credentials.entries.map {
+          Signatory.getService().issue(it.value.type,
             ProofConfig(issuerDid = issuerDid,
               proofType = ProofType.LD_PROOF,
               subjectDid = VcUtils.getSubject(vp_token)),
-            dataProvider = it.credentialData?.let { cd -> MergingDataProvider(cd) })
+            dataProvider = credentialLib.createDataProvider( issuanceReq.user, it.key))
         }
       } else {
         listOf()
