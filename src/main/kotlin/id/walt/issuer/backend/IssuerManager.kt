@@ -49,12 +49,13 @@ object IssuerManager {
 
   val reqCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build<String, IssuanceRequest>()
   lateinit var issuerDid: String;
-  val credentialLib = CredentialLib()
+  lateinit var credentialLib : CredentialLib;
 
   init {
     WalletContextManager.runWith(issuerContext) {
-      issuerDid = DidService.listDids().firstOrNull() ?: DidService.create(DidMethod.key)
-      //issuerDid = credentialLib.getIssuerDid()
+      credentialLib = CredentialLib()
+      //issuerDid = DidService.listDids().firstOrNull() ?: DidService.create(DidMethod.key)
+      issuerDid = credentialLib.getIssuerDid()
     }
   }
 
