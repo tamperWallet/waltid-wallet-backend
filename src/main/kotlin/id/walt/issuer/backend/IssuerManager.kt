@@ -18,13 +18,10 @@ import id.walt.services.hkvstore.HKVKey
 import id.walt.services.key.KeyService
 import id.walt.services.keystore.HKVKeyStoreService
 import id.walt.services.vcstore.HKVVcStoreService
-import id.walt.signatory.MergingDataProvider
+import id.walt.signatory.dataproviders.MergingDataProvider
 import id.walt.signatory.ProofConfig
 import id.walt.signatory.ProofType
 import id.walt.signatory.Signatory
-import id.walt.vclib.Helpers.encode
-import id.walt.vclib.VcLibManager
-import id.walt.vclib.VcUtils
 import id.walt.vclib.credentials.*
 import id.walt.vclib.model.VerifiableCredential
 import id.walt.vclib.templates.VcTemplateManager
@@ -98,7 +95,7 @@ object IssuerManager {
     }
     // TODO: verify id_token!!
     return WalletContextManager.runWith(issuerContext) {
-      if(VcUtils.getChallenge(vp_token) == nonce &&
+      if(vp_token.challenge == nonce &&
         // TODO: verify id_token subject
         //id_token.subject == VcUtils.getSubject(vp_token) &&
         // TODO: verify VP signature (import public key for did, currently not supported for did:key!)
@@ -110,7 +107,7 @@ object IssuerManager {
           Signatory.getService().issue(it.value.type,
             ProofConfig(issuerDid = issuerDid,
               proofType = ProofType.LD_PROOF,
-              subjectDid = VcUtils.getSubject(vp_token)),
+              subjectDid = vp_token.subject),
             dataProvider = credentialLib.createDataProvider( issuanceReq.user, it.key))
         }
       } else {
