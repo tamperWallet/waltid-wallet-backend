@@ -1,4 +1,6 @@
 FROM openjdk:17-jdk-slim as buildstage
+ARG USERNAME
+ARG TOKEN
 COPY ./ /
 RUN ./gradlew installDist
 

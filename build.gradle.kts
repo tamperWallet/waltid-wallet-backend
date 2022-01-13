@@ -15,6 +15,13 @@ repositories {
     maven("https://maven.walt.id/repository/waltid-ssi-kit/")
 
     maven("https://maven.walt.id/repository/danubetech")
+    maven {
+        url = uri("https://maven.pkg.github.com/microblock-tau/edclexcel2ebsi")
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("TOKEN")
+        }
+    }
 
     mavenLocal()
     maven("https://repo.danubetech.com/repository/maven-public/")
