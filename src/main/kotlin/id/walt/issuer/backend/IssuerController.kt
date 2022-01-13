@@ -1,10 +1,20 @@
 package id.walt.issuer.backend
 import com.beust.klaxon.Klaxon
+import com.nimbusds.oauth2.sdk.*
+import com.nimbusds.oauth2.sdk.http.HTTPRequest
+import com.nimbusds.oauth2.sdk.http.ServletUtils
+import com.nimbusds.oauth2.sdk.id.Issuer
+import com.nimbusds.openid.connect.sdk.Nonce
+import com.nimbusds.openid.connect.sdk.SubjectType
+import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import id.walt.common.OidcUtil
+import id.walt.model.dif.CredentialManifest
+import id.walt.model.dif.OutputDescriptor
 import id.walt.model.siopv2.*
 import id.walt.services.jwt.JwtService
 import id.walt.vclib.credentials.VerifiablePresentation
 import id.walt.vclib.model.toCredential
+import id.walt.vclib.templates.VcTemplateManager
 import id.walt.verifier.backend.SIOPv2RequestManager
 import id.walt.verifier.backend.VerifierConfig
 import id.walt.verifier.backend.VerifierController
@@ -16,6 +26,7 @@ import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documented
+import java.net.URI
 import java.time.Instant
 import java.util.*
 
@@ -67,6 +78,35 @@ object IssuerController {
             ))
           }
         }
+        path("oidc") {
+          get("meta", documented(
+              document().operation {
+                it.summary("get OIDC provider meta data")
+                  .addTagsItem("issuer")
+                  .operationId("oidcProviderMeta")
+              }
+                .json<OIDCProviderMetadata>("200"),
+              IssuerController::oidcProviderMeta
+            ))
+          post("nonce", documented(
+            document().operation {
+              it.summary("get presentation nonce")
+                .addTagsItem("issuer")
+                .operationId("nonce")
+            }
+              .json<NonceResponse>("200"),
+            IssuerController::nonce
+          ))
+          post("par", documented(
+            document().operation {
+              it.summary("pushed authorization request")
+                .addTagsItem("issuer")
+                .operationId("par")
+            }
+              .json<PushedAuthorizationSuccessResponse>("200"),
+            IssuerController::par
+          ))
+        }
       }
 
   fun listIssuableCredentials(ctx: Context) {
@@ -114,5 +154,44 @@ object IssuerController {
     ctx.result(
       "[ ${IssuerManager.fulfillIssuanceRequest(nonce, null, vp_token).joinToString(",") } ]"
     )
+  }
+
+  fun oidcProviderMeta(ctx: Context) {
+    ctx.json(OIDCProviderMetadata(
+      Issuer(IssuerConfig.config.issuerApiUrl),
+      listOf(SubjectType.PAIRWISE, SubjectType.PUBLIC),
+      URI("http://blank")).apply {
+        authorizationEndpointURI = URI("${IssuerConfig.config.issuerUiUrl}/login")
+        pushedAuthorizationRequestEndpointURI = URI("${IssuerConfig.config.issuerApiUrl}/oidc/par")
+        tokenEndpointURI = URI("${IssuerConfig.config.issuerApiUrl}/oidc/token")
+        setCustomParameter("credential_endpoint", "${IssuerConfig.config.issuerApiUrl}/oidc/credential")
+        setCustomParameter("nonce_endpoint", "${IssuerConfig.config.issuerApiUrl}/oidc/nonce")
+        setCustomParameter("credential_manifests", listOf(
+          CredentialManifest(
+            issuer = id.walt.model.dif.Issuer(IssuerManager.issuerDid, IssuerConfig.config.issuerClientName),
+            outputDescriptors = listOf(
+               OutputDescriptor("VerifiableID", VcTemplateManager.loadTemplate("VerifiableId").credentialSchema!!.id, "Verifiable ID document")
+            )
+          )).map { net.minidev.json.parser.JSONParser().parse(Klaxon().toJsonString(it)) }
+        )
+    }.toJSONObject())
+  }
+
+  fun nonce(ctx: Context) {
+    ctx.json(IssuerManager.newNonce())
+  }
+
+  fun par(ctx: Context) {
+    try {
+      val response = IssuerManager.pushAuthorizationRequest(
+        PushedAuthorizationRequest.parse(ServletUtils.createHTTPRequest(ctx.req))
+      )
+      if(response.indicatesSuccess())
+        ctx.json(response.toSuccessResponse().toJSONObject())
+
+      ctx.status(response.toErrorResponse().errorObject.httpStatusCode).json(response.toErrorResponse())
+    } catch (exc: ParseException) {
+      ctx.status(HttpCode.BAD_REQUEST).json(PushedAuthorizationErrorResponse(ErrorObject("400", "Error parsing PAR")))
+    }
   }
 }
