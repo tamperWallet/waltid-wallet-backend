@@ -1,12 +1,14 @@
 version: "3.3"
 services:
   wallet-backend:
-    image: waltid/ssikit-wallet-backend:latest  # backend docker image
+    image: ghcr.io/microblock-tau/waltid-wallet-backend:latest  # backend docker image
     environment:
       WALTID_DATA_ROOT: ./data-root
       WALTID_WALLET_BACKEND_BIND_ADDRESS: 0.0.0.0
     volumes:
       - .:/waltid-wallet-backend/data-root # data store volume incl. config files.
+      - ../credentials.xlsm:/waltid-wallet-backend/credentials.xlsm
+      - ../config.properties:/waltid-wallet-backend/config.properties
     extra_hosts:
       - "host.docker.internal:host-gateway"
   wallet-ui:
@@ -14,7 +16,7 @@ services:
   verifier-ui:
     image: waltid/ssikit-verifier-portal:latest # verifier web ui docker image
   issuer-ui:
-    image: waltid/ssikit-issuer-portal:latest # issuer web ui docker image
+    image: ghcr.io/microblock-tau/waltid-issuer-portal:latest # issuer web ui docker image
   ingress:
     image: nginx:1.15.10-alpine
     ports:
