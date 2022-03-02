@@ -84,8 +84,14 @@ object IssuerManager {
   fun listIssuableCredentialsFor(user: String): Issuables {
 //<<<<<<< HEAD
     return Issuables(
-      credentials = listOf("VerifiableId", "VerifiableDiploma", "VerifiableVaccinationCertificate", "ProofOfResidence", "ParticipantCredential")
-        .map { IssuableCredential.fromTemplateId(it) }
+      credentials = credentialLib.listCredentialsForStudent(user)
+        .map {
+          IssuableCredential(
+            DiplomaDataProvider.getCredentialSchema(),
+            DiplomaDataProvider.getCredentialType(),
+            mapOf( "title" to it )
+          )
+        }
     )
 /*=======
     val credentials = HashMap<String, IssuableCredential>()
