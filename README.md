@@ -1,9 +1,12 @@
 # waltid-wallet-backend
 
-[![CI/CD Workflow for Walt.ID Wallet Backend](https://github.com/walt-id/waltid-wallet-backend/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/walt-id/waltid-wallet-backend/actions/workflows/ci.yml)
+The walt.id wallet backend provides the API and backend business logic for the walt.id web wallet.
+Additionally, it includes a reference implementation of a Verifier and Issuer
+Portal backend.
 
-The **walt.id wallet backend** provides the API and backend business logic for the walt.id web wallet.
-Additionally, it includes a reference implementation of a Verifier and Issuer Portal backend. 
+In the [MicroBlock](https://www.tuni.fi/en/research/microblock-advancing-exchange-micro-credentials-ebsi) project the backend has been modified to issue micro
+credentials using the [edclexcel2ebsi](https://github.com/MicroBlock-TAU/edclexcel2ebsi) library which creates credentiasl from EDCL
+data stored to an Excel file. It works with a modified version of the [issuer portal](https://github.com/MicroBlock-TAU/waltid-issuer-portal).
 
 The provided services include:
 
@@ -33,15 +36,11 @@ The provided services include:
 ## Related components
 * Web wallet frontend https://github.com/walt-id/waltid-web-wallet
 * Verifier portal https://github.com/walt-id/waltid-verifier-portal
-* Issuer portal https://github.com/walt-id/waltid-issuer-portal
+* Issuer portal https://github.com/MicroBlock-TAU/waltid-issuer-portal
 
 ## Test deployment
 
-The snap-shot version of this repository is automatically deployed for testing purpose. Feel free to access the test system at the following endpoints:
-
-* https://issuer.waltid.org
-* https://wallet.waltid.org
-* https://verifier.waltid.org
+Demo based on this version is available at <http://microblock.rd.tuni.fi/>
 
 ## Usage
 
@@ -94,6 +93,11 @@ It can be overridden by specifying the **environment variable**:
   }
 }
 ```
+
+The issuer did and key are configured using [edclexcel2ebsi] config.properties
+configuration file. The credential data should be in file named
+credentials.xlsm. Both configuration and credential data files should be located
+at the current working directory.
 
 ### Wallet backend configuration
 
