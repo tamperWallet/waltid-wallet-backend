@@ -35,7 +35,7 @@ dependencies {
 
     // SSIKIT
     implementation("id.walt:waltid-ssi-kit:1.7-SNAPSHOT")
-    implementation("id.walt:waltid-ssikit-vclib:1.15.0")
+    implementation("id.walt:waltid-ssikit-vclib:1.15.0-SNAPSHOT")
 
     // Service-Matrix
     implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.0")
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.0-alpha6")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
 
-    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.1.0-snapshot")
+    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.2.0-snapshot")
 
     // Testing
     //testImplementation(kotlin("test-junit"))

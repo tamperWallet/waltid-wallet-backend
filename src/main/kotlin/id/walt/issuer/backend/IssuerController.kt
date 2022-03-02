@@ -36,6 +36,7 @@ import io.javalin.plugin.openapi.dsl.documented
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
+import fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
 
 object IssuerController {
   val routes
@@ -217,19 +218,13 @@ object IssuerController {
         setCustomParameter("credential_manifests", listOf(
           CredentialManifest(
             issuer = id.walt.model.dif.Issuer(IssuerManager.issuerDid, IssuerConfig.config.issuerClientName),
-            outputDescriptors = VcTypeRegistry.getTypesWithTemplate().values
-              .filter {
-                it.isPrimary &&
-                AbstractVerifiableCredential::class.java.isAssignableFrom(it.vc.java) &&
-                !it.metadata.template?.invoke()?.credentialSchema?.id.isNullOrEmpty()
-              }
-              .map {
+            outputDescriptors = listOf(
               OutputDescriptor(
-                it.metadata.type.last(),
-                it.metadata.template!!.invoke()!!.credentialSchema!!.id,
-                it.metadata.type.last()
+                DiplomaDataProvider.getCredentialType(),
+                DiplomaDataProvider.getCredentialSchema(),
+                DiplomaDataProvider.getCredentialType()
               )
-            }
+            )
           )).map { net.minidev.json.parser.JSONParser().parse(Klaxon().toJsonString(it)) }
         )
     }.toJSONObject())
