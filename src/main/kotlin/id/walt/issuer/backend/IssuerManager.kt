@@ -143,7 +143,7 @@ object IssuerManager {
             ProofConfig(issuerDid = issuerDid,
               proofType = ProofType.LD_PROOF,
               subjectDid = vp_token.subject),
-            dataProvider = credentialLib.createDataProvider( issuanceReq.user, it.type))
+            dataProvider = credentialLib.createDataProvider( issuanceReq.user, it.credentialData?.get("title") as String? ))
         }
       } else {
         listOf()
