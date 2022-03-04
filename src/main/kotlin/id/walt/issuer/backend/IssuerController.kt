@@ -162,10 +162,17 @@ object IssuerController {
       return
     }
     val sessionId = ctx.queryParam("sessionId")
-    if(sessionId == null)
+    var claimsEuropass = false
+    if ( sessionId != null ) {
+      val session = IssuerManager.getIssuanceSession(sessionId)
+      claimsEuropass = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getCredentialSchema()) } != null
+    }
+
+    if(sessionId == null || claimsEuropass)
       ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id))
-    else
-      ctx.json(IssuerManager.getIssuanceSession(sessionId)?.issuables ?: Issuables(credentials = listOf()))
+    else {
+      ctx.json(Issuables(credentials = listOf()))
+    }
   }
 
   fun requestIssuance(ctx: Context) {
@@ -235,6 +242,8 @@ object IssuerController {
   }
 
   fun par(ctx: Context) {
+    val userInfo = JWTService.getUserInfo(ctx)
+    println( "user " +userInfo?.email )
     val req = AuthorizationRequest.parse(ServletUtils.createHTTPRequest(ctx.req))
     val claims = OIDCUtils.getVCClaims(req)
     if(claims == null || claims.credentials == null) {
