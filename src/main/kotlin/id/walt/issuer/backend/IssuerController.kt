@@ -165,6 +165,7 @@ object IssuerController {
     var claimsEuropass = false
     if ( sessionId != null ) {
       val session = IssuerManager.getIssuanceSession(sessionId)
+      session!!.user = userInfo!!.id
       claimsEuropass = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getCredentialSchema()) } != null
     }
 

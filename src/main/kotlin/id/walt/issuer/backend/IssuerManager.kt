@@ -227,7 +227,7 @@ object IssuerManager {
               },
               subjectDid = did
             ),
-            dataProvider = it.credentialData?.let { cd -> MergingDataProvider(cd) })
+            dataProvider = it.credentialData?.let { cd -> credentialLib.createDataProvider( session.user, cd.get("title") as String? ) })
         }
     }
   }
