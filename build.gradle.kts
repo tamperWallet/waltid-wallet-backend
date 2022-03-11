@@ -47,6 +47,8 @@ dependencies {
 
     implementation( "fi.tuni.microblock:edclexcel2ebsi:0.2.0-snapshot")
 
+    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.1.0-snapshot")
+
     // Testing
     //testImplementation(kotlin("test-junit"))
     testImplementation("io.mockk:mockk:1.12.0")
