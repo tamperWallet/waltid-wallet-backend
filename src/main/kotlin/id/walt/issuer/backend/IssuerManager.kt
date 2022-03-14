@@ -82,7 +82,6 @@ object IssuerManager {
   }
 
   fun listIssuableCredentialsFor(user: String): Issuables {
-//<<<<<<< HEAD
     return Issuables(
       credentials = credentialLib.listCredentialsForStudent(user)
         .map {
@@ -93,15 +92,7 @@ object IssuerManager {
           )
         }
     )
-/*=======
-    val credentials = HashMap<String, IssuableCredential>()
-    for ( title in credentialLib.listCredentialsForStudent(user) ) {
-      val credential = IssuableCredential( type = "VerifiableDiploma", description = title )
-      credentials.put( title, credential )
-    }
 
-    return Issuables( credentials = credentials )
->>>>>>> master*/
   }
 
   fun newSIOPIssuanceRequest(user: String, selectedIssuables: Issuables): SIOPv2Request {
@@ -132,14 +123,9 @@ object IssuerManager {
         //Auditor.getService().verify(vp_token.encode(), listOf(SignaturePolicy())).overallStatus
         true
       ) {
-/*<<<<<<< HEAD
+
         issuanceReq.selectedIssuables.credentials.map {
           Signatory.getService().issue(it.type,
-=======
-        issuanceReq.selectedIssuables.credentials.*/
-        issuanceReq.selectedIssuables.credentials.map {
-          Signatory.getService().issue(it.type,
-//>>>>>>> master
             ProofConfig(issuerDid = issuerDid,
               proofType = ProofType.LD_PROOF,
               subjectDid = vp_token.subject),
@@ -192,6 +178,10 @@ object IssuerManager {
     val nonce = UUID.randomUUID().toString()
     nonceCache.put(nonce, true)
     return NonceResponse(nonce, expires_in = EXPIRATION_TIME.seconds.toString())
+  }
+
+  fun checkNonce(nonce: String): Boolean {
+    return nonceCache.getIfPresent(nonce) ?: false
   }
 
   fun initializeIssuanceSession(credentialClaims: List<CredentialClaim>, authRequest: AuthorizationRequest): IssuanceSession {

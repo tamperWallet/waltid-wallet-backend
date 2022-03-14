@@ -39,13 +39,18 @@ data:
       "issuers": {
         "walt.id": {
           "id": "walt.id",
-          "url": "https://wallet.waltid.org/issuer-api/oidc",
+          "url": "https://issuer.waltid.org/issuer-api/oidc",
           "description": "walt.id Issuer Portal"
         },
         "yes.com": {
           "id": "yes.com",
           "url": "https://demo.sandbox.yes.com/essif/issuer/c2id",
           "description": "yes.com Bank ID issuer"
+        },
+        "onboarding@walt.id": {
+          "id": "onboarding@walt.id",
+          "url": "https://issuer.waltid.org/onboarding-api/oidc",
+          "description": "walt.id On-Boarding service"
         }
       }
     }
@@ -270,6 +275,13 @@ spec:
                 name: wallet-backend
                 port:
                   number: 80
+          - path: /onboarding-api/
+            pathType: Prefix
+            backend:
+              service:
+                name: wallet-backend
+                port:
+                  number: 80
           - path: /webjars
             pathType: Prefix
             backend:
@@ -312,6 +324,13 @@ spec:
       http:
         paths:
           - path: /issuer-api/
+            pathType: Prefix
+            backend:
+              service:
+                name: wallet-backend
+                port:
+                  number: 80
+          - path: /onboarding-api/
             pathType: Prefix
             backend:
               service:
