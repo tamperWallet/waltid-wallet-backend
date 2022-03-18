@@ -17,7 +17,7 @@ services:
   wallet-ui:
     image: waltid/ssikit-web-wallet:latest # wallet web ui docker image
   verifier-ui:
-    image: waltid/ssikit-verifier-portal:latest # verifier web ui docker image
+    image: ghcr.io/microblock-tau/waltid-verifier-portal:latest
   issuer-ui:
     image: ghcr.io/microblock-tau/waltid-issuer-portal:latest # issuer web ui docker image
   ingress:
