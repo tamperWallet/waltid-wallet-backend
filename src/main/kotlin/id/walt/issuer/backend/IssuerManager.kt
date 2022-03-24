@@ -82,16 +82,31 @@ object IssuerManager {
     }
   }
 
-  fun listIssuableCredentialsFor(user: String): Issuables {
+  fun listIssuableCredentialsFor(user: String, credentialTypes: List<String?>?): Issuables {
+    var credentials = ArrayList<IssuableCredential>()
+    if ( credentialTypes!!.contains(DiplomaDataProvider.getIdCredentialSchema()) && credentialLib.studentExists(user)) {
+      credentials.add(IssuableCredential(
+        DiplomaDataProvider.getIdCredentialSchema(),
+        DiplomaDataProvider.getIdCredentialType(),
+        mapOf( "title" to "Tampere University student id")
+      ))
+    }
+
+    if ( credentialTypes!!.contains(DiplomaDataProvider.getCredentialSchema())) {
+      credentials.addAll(
+        credentialLib.listCredentialsForStudent(user)
+          .map {
+            IssuableCredential(
+              DiplomaDataProvider.getCredentialSchema(),
+              DiplomaDataProvider.getCredentialType(),
+              mapOf("title" to it)
+            )
+          }
+      )
+    }
+
     return Issuables(
-      credentials = credentialLib.listCredentialsForStudent(user)
-        .map {
-          IssuableCredential(
-            DiplomaDataProvider.getCredentialSchema(),
-            DiplomaDataProvider.getCredentialType(),
-            mapOf( "title" to it )
-          )
-        }
+      credentials = credentials
     )
 
   }

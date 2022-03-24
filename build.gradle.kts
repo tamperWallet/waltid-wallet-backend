@@ -15,6 +15,8 @@ repositories {
     maven("https://maven.walt.id/repository/waltid-ssi-kit/")
 
     maven("https://maven.walt.id/repository/danubetech")
+    mavenLocal()
+    maven("https://repo.danubetech.com/repository/maven-public/")
     maven {
         url = uri("https://maven.pkg.github.com/microblock-tau/edclexcel2ebsi")
         credentials {
@@ -22,9 +24,6 @@ repositories {
             password = System.getenv("TOKEN")
         }
     }
-
-    mavenLocal()
-    maven("https://repo.danubetech.com/repository/maven-public/")
 }
 
 dependencies {
@@ -47,7 +46,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.0-alpha6")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
 
-    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.2.0-snapshot")
+    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.3.0")
 
 
 

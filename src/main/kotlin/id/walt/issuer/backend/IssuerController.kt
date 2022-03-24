@@ -163,17 +163,23 @@ object IssuerController {
     }
     val sessionId = ctx.queryParam("sessionId")
     var claimsEuropass = false
+    var claimsId = false
+    var credentialTypes: List<String?>? = null
     if ( sessionId != null ) {
       val session = IssuerManager.getIssuanceSession(sessionId)
       session!!.user = userInfo!!.id
+      credentialTypes = session!!.credentialClaims.map { it.type }
       claimsEuropass = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getCredentialSchema()) } != null
+      claimsId = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getIdCredentialSchema()) } != null
     }
 
-    if(sessionId == null || claimsEuropass)
-      ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id))
     else {
-      ctx.json(Issuables(credentials = listOf()))
+      credentialTypes = listOf( DiplomaDataProvider.getIdCredentialSchema(), DiplomaDataProvider.getCredentialSchema())
     }
+
+
+    ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id, credentialTypes))
+
   }
 
   fun requestIssuance(ctx: Context) {
@@ -231,6 +237,11 @@ object IssuerController {
                 DiplomaDataProvider.getCredentialType(),
                 DiplomaDataProvider.getCredentialSchema(),
                 DiplomaDataProvider.getCredentialType()
+              ),
+              OutputDescriptor(
+                DiplomaDataProvider.getIdCredentialType(),
+                DiplomaDataProvider.getIdCredentialSchema(),
+                DiplomaDataProvider.getIdCredentialType()
               )
             )
           )).map { net.minidev.json.parser.JSONParser().parse(Klaxon().toJsonString(it)) }
