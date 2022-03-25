@@ -2,11 +2,11 @@ package id.walt.verifier.backend
 import id.walt.webwallet.backend.auth.JWTService
 import id.walt.webwallet.backend.auth.UserRole
 import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.HttpCode
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documented
-import org.apache.http.HttpStatus
 
 object VerifierController {
   val routes
@@ -37,15 +37,16 @@ object VerifierController {
           ))
         }
         path("verify") {
-          post("{nonce}", documented(
+          post( documented(
             document().operation {
               it.summary("SIOPv2 request verification callback")
                 .addTagsItem("Verifier")
                 .operationId("verifySIOPv2Request")
             }
+              .queryParam<String>("state")
               .formParamBody<String> { }
               .result<String>("302"),
-            VerifierController::verifySIOPv2Request
+            VerifierController::verifySIOPResponse
           ))
         }
         path("auth") {
@@ -56,7 +57,7 @@ object VerifierController {
                 .operationId("completeAuthentication")
             }
               .queryParam<String>("access_token")
-              .json<ResponseVerification>("200"),
+              .json<SIOPResponseVerificationResult>("200"),
             VerifierController::completeAuthentication
           ))
         }
@@ -87,24 +88,18 @@ object VerifierController {
     } else {
       val wallet = VerifierConfig.config.wallets.get(walletId)!!
       ctx.status(HttpCode.FOUND).header("Location", "${wallet.url}/${wallet.presentPath}"+
-          "?${SIOPv2RequestManager.newRequest(schemaUri).toUriQueryString()}")
+          "?${VerifierManager.getService().newRequest(schemaUri).toUriQueryString()}")
     }
   }
 
-  fun verifySIOPv2Request(ctx: Context) {
-    // TODO: verify siop response
-    val nonce = ctx.pathParam("nonce")
-    val id_token = ctx.formParam("id_token")
-    val vp_token = ctx.formParam("vp_token")
+  fun verifySIOPResponse(ctx: Context) {
+    val state = ctx.formParam("state") ?: throw  BadRequestResponse("State not specified")
+    val id_token = ctx.formParam("id_token") ?: throw BadRequestResponse("id_token not specified")
+    val vp_token = ctx.formParam("vp_token") ?: throw BadRequestResponse("vp_token not specified")
 
-    if(nonce.isNullOrEmpty() || id_token.isNullOrEmpty() || vp_token.isNullOrEmpty()) {
-      ctx.status(HttpStatus.SC_BAD_REQUEST).result("Missing required parameters")
-      return
-    }
+    val result = VerifierManager.getService().verifyResponse(state, id_token, vp_token)
 
-    val result = SIOPv2RequestManager.verifyResponse(nonce, id_token, vp_token)
-
-    ctx.status(HttpCode.FOUND).header("Location", "${VerifierConfig.config.verifierUiUrl}/success/?access_token=${result?.id ?: ""}")
+    ctx.status(HttpCode.FOUND).header("Location", VerifierManager.getService().getVerificationRedirectionUri(result).toString())
   }
 
   fun completeAuthentication(ctx: Context) {
@@ -113,7 +108,7 @@ object VerifierController {
       ctx.status(HttpCode.FORBIDDEN)
       return
     }
-    val result = SIOPv2RequestManager.getVerificationResult(access_token)
+    val result = VerifierManager.getService().getVerificationResult(access_token)
     if(result == null) {
       ctx.status(HttpCode.FORBIDDEN)
       return
