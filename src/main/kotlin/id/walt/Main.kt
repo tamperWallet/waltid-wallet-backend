@@ -44,6 +44,7 @@ internal val WALTID_DATA_ROOT = System.getenv("WALTID_DATA_ROOT") ?: "."
 
 
 fun main(args: Array<String>) {
+    println("main pradejom:")
     ServiceMatrix("service-matrix.properties")
     ServiceRegistry.registerService<ContextManager>(WalletContextManager)
 

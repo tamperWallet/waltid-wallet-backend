@@ -36,12 +36,24 @@ import io.javalin.plugin.openapi.dsl.documented
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
-import fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
+import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
+//import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
 
 object IssuerController {
   val routes
     get() =
       path("") {
+//        path("jwt"){
+//          get("getJwtToken", documented(
+//            document().operation {
+//              it.summary("Get JWT token")
+//                .addTagsItem("Issuer")
+//                .operationId("getJwtToken")
+//            }
+//              .jsonArray<WalletConfiguration>("200"),
+//            VerifierController::getJwtToken,
+//          ))
+//        }
         path("wallets") {
           get("list", documented(
             document().operation {
@@ -155,58 +167,99 @@ object IssuerController {
         }
       }
 
+//  fun listIssuableCredentials(ctx: Context) {
+//    val userInfo = JWTService.getUserInfo(ctx)
+//    if(userInfo == null) {
+//      ctx.status(HttpCode.UNAUTHORIZED)
+//      return
+//    }
+//    val sessionId = ctx.queryParam("sessionId")
+//    println("session id:")
+//    println(sessionId)
+//    var claimsEuropass = false
+//    var claimsId = false
+//    var credentialTypes: List<String?>? = null
+//    if ( sessionId != null ) {
+//      val session = IssuerManager.getIssuanceSession(sessionId)
+//      session!!.user = userInfo!!.id
+//      credentialTypes = session!!.credentialClaims.map { it.type }
+//      claimsEuropass = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getCredentialSchema()) } != null
+//      claimsId = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getIdCredentialSchema()) } != null
+//    }
+//
+//    else {
+//      credentialTypes = listOf( DiplomaDataProvider.getIdCredentialSchema(), DiplomaDataProvider.getCredentialSchema())
+//    }
+//    println("IdCrdentialScheme")
+//    println(DiplomaDataProvider.getIdCredentialSchema())
+//    credentialTypes = listOf( DiplomaDataProvider.getIdCredentialSchema(), DiplomaDataProvider.getCredentialSchema())
+//
+//
+////    ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id, credentialTypes))
+//    ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id))
+//  }
   fun listIssuableCredentials(ctx: Context) {
     val userInfo = JWTService.getUserInfo(ctx)
+
     if(userInfo == null) {
       ctx.status(HttpCode.UNAUTHORIZED)
       return
     }
     val sessionId = ctx.queryParam("sessionId")
-    var claimsEuropass = false
-    var claimsId = false
-    var credentialTypes: List<String?>? = null
-    if ( sessionId != null ) {
-      val session = IssuerManager.getIssuanceSession(sessionId)
-      session!!.user = userInfo!!.id
-      credentialTypes = session!!.credentialClaims.map { it.type }
-      claimsEuropass = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getCredentialSchema()) } != null
-      claimsId = session!!.credentialClaims.find { it.type.equals(DiplomaDataProvider.getIdCredentialSchema()) } != null
-    }
-
-    else {
-      credentialTypes = listOf( DiplomaDataProvider.getIdCredentialSchema(), DiplomaDataProvider.getCredentialSchema())
-    }
 
 
-    ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo!!.id, credentialTypes))
-
+    println(userInfo)
+    if(sessionId == null)
+      ctx.json(IssuerManager.listIssuableCredentialsFor(userInfo))
+    else
+      ctx.json(IssuerManager.getIssuanceSession(sessionId)?.issuables ?: Issuables(credentials = listOf()))
   }
+
+
 
   fun requestIssuance(ctx: Context) {
     val userInfo = JWTService.getUserInfo(ctx)
+
     if(userInfo == null) {
       ctx.status(HttpCode.UNAUTHORIZED)
       return
     }
-
+    println("userInfo:")
+    println(userInfo.toString())
     val wallet = ctx.queryParam("walletId")?.let { IssuerConfig.config.wallets.getOrDefault(it, null) }
+    println("wallet:")
+    println(wallet)
     val session = ctx.queryParam("sessionId")?.let { IssuerManager.getIssuanceSession(it) }
+    println("session:")
+    println(session)
     if (wallet == null && session == null) {
       ctx.status(HttpCode.BAD_REQUEST).result("Unknown wallet or session ID given")
       return
     }
 
     val selectedIssuables = ctx.bodyAsClass<Issuables>()
+    println("selectedIssuables:")
+    println(selectedIssuables)
     if(selectedIssuables.credentials.isEmpty()) {
       ctx.status(HttpCode.BAD_REQUEST).result("No issuable credential selected")
       return;
     }
-
+    println("ctx body:")
+    println(ctx.body())
     if(wallet != null) {
+
+      println("wallet not null")
+
+      //ctx.result("http://localhost:8080/${wallet.receivePath}?${IssuerManager.newSIOPIssuanceRequest(userInfo.id, selectedIssuables).toUriQueryString()}")
       ctx.result(" ${wallet.url}/${wallet.receivePath}?${IssuerManager.newSIOPIssuanceRequest(userInfo.id, selectedIssuables).toUriQueryString()}")
     } else {
-      ctx.result("${session!!.authRequest.redirectionURI}?code=${IssuerManager.updateIssuanceSession(session, selectedIssuables)}&state=${session.authRequest.state.value}")
+      println("wallet null")
+      //ctx.result("${session!!.authRequest.redirectionURI}?code=${IssuerManager.updateIssuanceSession(session, selectedIssuables)}&state=${session.authRequest.state.value}")
     }
+
+
+    //ctx.result(" ${wallet.url}/${wallet.receivePath}?${IssuerManager.newSIOPIssuanceRequest(userInfo.id, selectedIssuables).toUriQueryString()}")
+    println("baigem")
   }
 
   fun fulfillIssuance(ctx: Context) {
@@ -214,6 +267,8 @@ object IssuerController {
     val vp_token = ctx.formParam("vp_token")?.toCredential() as VerifiablePresentation
     //TODO: verify and parse id token
     val state = ctx.formParam("state") ?: throw BadRequestResponse("No state specified")
+    println("fulfillIssuance ctx body: ")
+    println(ctx.body())
     ctx.result(
       "[ ${IssuerManager.fulfillIssuanceRequest(state, null, vp_token).joinToString(",") } ]"
     )
@@ -262,7 +317,7 @@ object IssuerController {
       ctx.status(HttpCode.BAD_REQUEST).json(PushedAuthorizationErrorResponse(ErrorObject("400", "No credential claims given", 400)))
       return
     }
-    val session = IssuerManager.initializeIssuanceSession(claims.credentials!!, req)
+    val session = IssuerManager.initializeIssuanceSession(claims.credentials!!, req,userInfo!!)
     ctx.status(HttpCode.CREATED).json(PushedAuthorizationSuccessResponse(URI("urn:ietf:params:oauth:request_uri:${session.id}"), IssuerManager.EXPIRATION_TIME.seconds).toJSONObject())
   }
 

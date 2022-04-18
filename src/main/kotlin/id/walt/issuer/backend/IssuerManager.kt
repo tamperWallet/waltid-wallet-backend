@@ -1,19 +1,8 @@
 package id.walt.issuer.backend
 
-import fi.tuni.microblock.edclexcel2ebsi.CredentialLib
-import fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
+import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.CredentialLib
+//import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.CredentialLib
 import com.google.common.cache.CacheBuilder
-import com.nimbusds.oauth2.sdk.*
-import com.nimbusds.oauth2.sdk.id.ClientID
-import com.nimbusds.oauth2.sdk.id.State
-import com.nimbusds.oauth2.sdk.token.AccessToken
-import com.nimbusds.oauth2.sdk.token.AccessTokenType
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import com.nimbusds.oauth2.sdk.token.RefreshToken
-import com.nimbusds.openid.connect.sdk.*
-import com.nimbusds.openid.connect.sdk.token.OIDCTokens
-import id.walt.auditor.Auditor
-import id.walt.auditor.SignaturePolicy
 import com.nimbusds.oauth2.sdk.AuthorizationRequest
 import id.walt.crypto.KeyAlgorithm
 import id.walt.model.DidMethod
@@ -32,25 +21,18 @@ import id.walt.services.vcstore.HKVVcStoreService
 import id.walt.signatory.ProofConfig
 import id.walt.signatory.ProofType
 import id.walt.signatory.Signatory
-import id.walt.vclib.credentials.*
-import id.walt.vclib.model.AbstractVerifiableCredential
-import id.walt.vclib.model.CredentialSubject
 import id.walt.vclib.model.VerifiableCredential
+
 import id.walt.vclib.templates.VcTemplateManager
-import id.walt.verifier.backend.SIOPv2RequestManager
-import id.walt.verifier.backend.VerifierConfig
-import id.walt.verifier.backend.WalletConfiguration
-import id.walt.webwallet.backend.auth.JWTService
-import id.walt.webwallet.backend.auth.UserInfo
-import id.walt.webwallet.backend.config.WalletConfig
-import id.walt.signatory.dataproviders.MergingDataProvider
 import id.walt.vclib.credentials.VerifiablePresentation
 import id.walt.WALTID_DATA_ROOT
+import id.walt.signatory.dataproviders.MergingDataProvider
+import id.walt.vclib.credentials.VerifiableDiploma
+import id.walt.webwallet.backend.auth.UserInfo
 import id.walt.webwallet.backend.context.UserContext
 import id.walt.webwallet.backend.context.WalletContextManager
 import java.net.URI
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -67,6 +49,7 @@ object IssuerManager {
     keyStore = HKVKeyStoreService(),
     vcStore = HKVVcStoreService()
   )
+
   val EXPIRATION_TIME: Duration = Duration.ofMinutes(5)
   val reqCache = CacheBuilder.newBuilder().expireAfterWrite(EXPIRATION_TIME.seconds, TimeUnit.SECONDS).build<String, IssuanceRequest>()
   val nonceCache = CacheBuilder.newBuilder().expireAfterWrite(EXPIRATION_TIME.seconds, TimeUnit.SECONDS).build<String, Boolean>()
@@ -76,49 +59,92 @@ object IssuerManager {
 
   init {
     WalletContextManager.runWith(issuerContext) {
-      credentialLib = CredentialLib()
-      //issuerDid = DidService.listDids().firstOrNull() ?: DidService.create(DidMethod.key)
-      issuerDid = credentialLib.getIssuerDid()
+//      credentialLib = CredentialLib()
+      issuerDid = DidService.listDids().firstOrNull() ?: DidService.create(DidMethod.key)
+//      issuerDid = credentialLib.getIssuerDid()
+//      issuerDid = credentialLib.getIssuerDid()
     }
   }
 
-  fun listIssuableCredentialsFor(user: String, credentialTypes: List<String?>?): Issuables {
-    var credentials = ArrayList<IssuableCredential>()
-    if ( credentialTypes!!.contains(DiplomaDataProvider.getIdCredentialSchema()) && credentialLib.studentExists(user)) {
-      credentials.add(IssuableCredential(
-        DiplomaDataProvider.getIdCredentialSchema(),
-        DiplomaDataProvider.getIdCredentialType(),
-        mapOf( "title" to "Tampere University student id")
-      ))
-    }
+//  fun listIssuableCredentialsFor(user: String, credentialTypes: List<String?>?): Issuables {
+//    var credentials = ArrayList<IssuableCredential>()
+//    if ( credentialTypes!!.contains(DiplomaDataProvider.getIdCredentialSchema()) && credentialLib.studentExists(user)) {
+//      credentials.add(IssuableCredential(
+//        DiplomaDataProvider.getIdCredentialSchema(),
+//        DiplomaDataProvider.getIdCredentialType(),
+//        mapOf( "title" to "Tampere University student id")
+//      ))
+//    }
+//
+//    if ( credentialTypes!!.contains(DiplomaDataProvider.getCredentialSchema())) {
+//      credentials.addAll(
+//        credentialLib.listCredentialsForStudent(user)
+//          .map {
+//            IssuableCredential(
+//              DiplomaDataProvider.getCredentialSchema(),
+//              DiplomaDataProvider.getCredentialType(),
+//              mapOf("title" to it)
+//            )
+//          }
+//      )
+//    }
+//
+//
+//    return Issuables(
+//      credentials = credentials
+//    )
+//
+//  }
+  fun listIssuableCredentialsFor(user: UserInfo): Issuables {
 
-    if ( credentialTypes!!.contains(DiplomaDataProvider.getCredentialSchema())) {
-      credentials.addAll(
-        credentialLib.listCredentialsForStudent(user)
-          .map {
-            IssuableCredential(
-              DiplomaDataProvider.getCredentialSchema(),
-              DiplomaDataProvider.getCredentialType(),
-              mapOf("title" to it)
-            )
-          }
-      )
-    }
 
-    return Issuables(
-      credentials = credentials
-    )
+//  val cred = listOf("VerifiableId")
+//    .map { IssuableCredential.fromTemplateId(it) }
+//  println("cred:")
+//  println(cred)
+//  return Issuables(cred)
+
+  val cred = listOf("VerifiableId","VerifiableDiploma")
+    .map { IssuableCredential.fromTemplateId(it,user) }
+  println("cred:")
+  println(cred)
+  return Issuables(cred)
+
+
+  //cred.first().credentialData =
+//  return Issuables(
+//    //credentials = listOf("VerifiableId").map {mapOf(Pair("credentialSubject", StudentCredentialsGenerator.getStudentIdCredential(user)) ) }
+//    credentials = listOf("VerifiableId", "VerifiableDiploma", "VerifiableVaccinationCertificate", "ProofOfResidence", "ParticipantCredential")
+//      .map { IssuableCredential.fromTemplateId(it) }
+//
+//    )
 
   }
+
+
 
   fun newSIOPIssuanceRequest(user: String, selectedIssuables: Issuables): SIOPv2Request {
     val nonce = UUID.randomUUID().toString()
     val redirectUri = URI.create("${IssuerConfig.config.issuerApiUrl}/credentials/issuance/fulfill")
+    var normalCredentials = ArrayList<VerifiableCredential>()
+    var cred = listOf("VerifiableDiploma")
+      .map { VcTemplateManager.loadTemplate(it) }
+
+//    selectedIssuables.credentials.forEach {
+//        var template = VcTemplateManager.loadTemplate(it.type)
+//        var diploma = template as VerifiableDiploma
+//        diploma.credentialSubject?.givenNames = "Jonas"
+//        diploma.credentialSubject?.familyName = "Jonaitis"
+//
+//        normalCredentials.add(template)
+//
+//    }
+    var c = CredentialClaim( type = "belekas", manifest_id = "aaaa", vp_token = listOf(VerifiablePresentation(context = listOf(""), verifiableCredential = normalCredentials  )))
     val req = SIOPv2Request(
       redirect_uri = redirectUri.toString(),
       response_mode = "post",
       nonce = nonce,
-      claims = VCClaims(vp_token = VpTokenClaim(PresentationDefinition(listOf()))),
+      claims = VCClaims(vp_token = VpTokenClaim(PresentationDefinition(listOf())), credentials = listOf(c) ),
       state = nonce
     )
     reqCache.put(nonce, IssuanceRequest(user, nonce, selectedIssuables))
@@ -127,6 +153,11 @@ object IssuerManager {
 
   fun fulfillIssuanceRequest(nonce: String, id_token: IDToken?, vp_token: VerifiablePresentation): List<String> {
     val issuanceReq = reqCache.getIfPresent(nonce);
+
+    println("issuanceRequest")
+    println(issuanceReq)
+
+
     if(issuanceReq == null) {
       return listOf()
     }
@@ -144,8 +175,9 @@ object IssuerManager {
           Signatory.getService().issue(it.type,
             ProofConfig(issuerDid = issuerDid,
               proofType = ProofType.LD_PROOF,
-              subjectDid = vp_token.subject),
-            dataProvider = credentialLib.createDataProvider( issuanceReq.user, it.credentialData?.get("title") as String? ))
+              subjectDid = vp_token.subject)
+            ,
+              dataProvider = it.credentialData?.let { cd -> MergingDataProvider(cd) } )
         }
       } else {
         listOf()
@@ -200,10 +232,10 @@ object IssuerManager {
     return nonceCache.getIfPresent(nonce) ?: false
   }
 
-  fun initializeIssuanceSession(credentialClaims: List<CredentialClaim>, authRequest: AuthorizationRequest): IssuanceSession {
+  fun initializeIssuanceSession(credentialClaims: List<CredentialClaim>, authRequest: AuthorizationRequest, user: UserInfo): IssuanceSession {
     val id = UUID.randomUUID().toString()
     //TODO: validata/verify PAR request, VP tokens, claims, etc
-    val session = IssuanceSession(id, credentialClaims, authRequest, UUID.randomUUID().toString(), Issuables.fromCredentialClaims(credentialClaims))
+    val session = IssuanceSession(id, credentialClaims, authRequest, UUID.randomUUID().toString(), Issuables.fromCredentialClaims(credentialClaims,user))
     sessionCache.put(id, session)
     return session
   }

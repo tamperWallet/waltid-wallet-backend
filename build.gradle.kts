@@ -21,12 +21,22 @@ repositories {
         url = uri("https://maven.pkg.github.com/microblock-tau/edclexcel2ebsi")
         credentials {
             username = System.getenv("USERNAME")
+            println(username)
             password = System.getenv("TOKEN")
         }
     }
 }
 
 dependencies {
+    // JSON
+
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation("org.json:json:20220320")
+
+    // XML
+
+    implementation("org.simpleframework",  "simple-xml", "2.7.1")
+
     implementation("io.javalin:javalin-bundle:4.3.0")
     implementation("com.github.kmehrunes:javalin-jwt:0.3")
     implementation("com.beust:klaxon:5.5")
@@ -46,7 +56,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.0-alpha6")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
 
-    implementation( "fi.tuni.microblock:edclexcel2ebsi:0.3.0")
+    //implementation( "fi.tuni.microblock:edclexcel2ebsi:0.3.0")
 
 
 
@@ -73,7 +83,11 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
 application {
     mainClass.set("id.walt.MainKt")
+
 }
+//application {
+//    mainClass.set("id.walt.MainKt")
+//    mainClass
+//}

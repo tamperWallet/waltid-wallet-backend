@@ -11,6 +11,8 @@ import id.walt.model.oidc.SIOPv2Response
 import id.walt.services.oidc.OIDC4CIService
 import id.walt.services.oidc.OIDC4VPService
 import id.walt.services.oidc.OIDCUtils
+import id.walt.vclib.credentials.VerifiableDiploma
+import id.walt.vclib.credentials.VerifiableId
 import id.walt.vclib.credentials.VerifiablePresentation
 import id.walt.vclib.model.VerifiableCredential
 import id.walt.vclib.model.toCredential
@@ -68,6 +70,26 @@ object CredentialPresentationManager {
 
   private fun getPresentableCredentials(subject: String, req: SIOPv2Request): List<PresentableCredential> {
     val myCredentials = Custodian.getService().listCredentials()
+
+    println("getPresentable credentials \n\n mycredentials: \n ")
+    println(myCredentials)
+    println("input_descriptors:")
+    println(req.claims.vp_token?.presentation_definition?.input_descriptors)
+    val presentables = req.claims.vp_token?.presentation_definition?.input_descriptors?.flatMap { indesc ->
+      myCredentials.filter {
+        indesc.schema.uri == it.credentialSchema?.id &&
+                it.subject == subject && !it.id.isNullOrEmpty()
+      }.map { cred ->
+        println("cred")
+        println(cred)
+        PresentableCredential(cred.id!!, indesc.id)
+      }
+
+    }?.toList() ?: listOf()
+
+    println("presentablesCredentials:")
+    println(presentables)
+
     return req.claims.vp_token?.presentation_definition?.input_descriptors?.flatMap { indesc ->
       myCredentials.filter {
         indesc.schema.uri == it.credentialSchema?.id &&
@@ -75,6 +97,7 @@ object CredentialPresentationManager {
       }.map { cred ->
         PresentableCredential(cred.id!!, indesc.id)
       }
+
     }?.toList() ?: listOf()
   }
 
@@ -97,10 +120,18 @@ object CredentialPresentationManager {
     val did = session.did ?: throw  Exception("Did not set for this session")
 
     val myCredentials = Custodian.getService().listCredentials()
+
+    println("my credentials:  \n\n")
+    println(myCredentials.toString())
     val selectedCredentialIds = selectedCredentials.map { cred -> cred.credentialId }.toSet()
     val selectedCredentials =
       myCredentials.filter { cred -> selectedCredentialIds.contains(cred.id) }.map { cred -> cred.encode() }
         .toList()
+
+
+    println("selected credentials:  \n\n")
+    println(selectedCredentials.toString())
+
     val vp = Custodian.getService().createPresentation(
       selectedCredentials,
       did,
@@ -108,6 +139,16 @@ object CredentialPresentationManager {
       challenge = session.req.nonce,
       expirationDate = null
     ).toCredential() as VerifiablePresentation
+//    val verifCred = listOf(VerifiableId())
+//    val vp = VerifiablePresentation(
+//      selectedCredentials,
+//      did,
+//
+//      null,
+//      verifCred,
+//
+//      expirationDate = null
+//    )
 
     val vpSvc = OIDC4VPService(OIDCProvider("", ""))
     val siopResponse = vpSvc.getSIOPResponseFor(session.req, did, listOf(vp))

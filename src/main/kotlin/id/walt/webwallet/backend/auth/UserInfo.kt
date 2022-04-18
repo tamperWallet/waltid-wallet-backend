@@ -8,6 +8,7 @@ class UserInfo(
     var token: String? = null
     var ethAccount: String? = null
     var did: String? = null
+    var diplomaFile: String? = null
 
     init {
         when {

@@ -75,6 +75,7 @@ object VerifierController {
 
   fun listWallets(ctx: Context) {
     ctx.json(VerifierConfig.config.wallets.values)
+    println(VerifierConfig.config.wallets.values)
   }
 
   fun presentCredential(ctx: Context) {

@@ -294,8 +294,18 @@ object WalletController {
     }
 
     fun initPassiveIssuance(ctx: Context) {
+        println("initpassiveIssuance")
+        println("ctx bodys")
+        println(ctx.body())
         val req = SIOPv2Request.fromHttpContext(ctx)
+        println(req)
+
+
+
+        println("ctx bodys")
+        println(ctx.body())
         val session = CredentialPresentationManager.initCredentialPresentation(req, passiveIssuance = true)
+        println(session)
         ctx.status(HttpCode.FOUND)
             .header("Location", "${WalletConfig.config.walletUiUrl}/CredentialRequest/?sessionId=${session.id}")
     }
