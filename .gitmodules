@@ -1,0 +1,3 @@
+[submodule "src/main/kotlin/id/walt/edcl/edclExcel/edclexcel2ebsi"] 
+  path = src/main/kotlin/id/walt/edcl/edclExcel/edclexcel2ebsi 
+  url = git://tamperWallet/edclexcel2ebsi
