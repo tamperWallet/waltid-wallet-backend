@@ -1,6 +1,7 @@
 package id.walt.issuer.backend
 
-import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.CredentialLib
+//import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.CredentialLib
+import fi.tuni.microblock.edclexcel2ebsi.CredentialLib
 //import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.CredentialLib
 import com.google.common.cache.CacheBuilder
 import com.nimbusds.oauth2.sdk.AuthorizationRequest

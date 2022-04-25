@@ -57,7 +57,9 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
 
     //implementation( "fi.tuni.microblock:edclexcel2ebsi:0.3.0")
-
+    implementation( "org.apache.poi:poi-ooxml:5.0.0")
+    implementation ("info.picocli:picocli:4.6.2")
+    annotationProcessor ("info.picocli:picocli-codegen:4.6.2")
 
 
     // Testing

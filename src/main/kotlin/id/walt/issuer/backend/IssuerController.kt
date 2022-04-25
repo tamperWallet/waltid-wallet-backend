@@ -36,8 +36,8 @@ import io.javalin.plugin.openapi.dsl.documented
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
-import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
 //import id.walt.edcl.edclExcel.edclexcel2ebsi.src.main.java.fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
+import fi.tuni.microblock.edclexcel2ebsi.DiplomaDataProvider
 
 object IssuerController {
   val routes
