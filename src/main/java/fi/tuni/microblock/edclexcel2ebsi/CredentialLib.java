@@ -56,7 +56,7 @@ public class CredentialLib {
      */
     public CredentialLib(String configFile) {
         config = new Config(configFile);
-        // this may be used of a part of application that has already created its own ser�vice configuration.
+        // this may be used of a part of application that has already created its own service configuration.
         if ( ServiceRegistry.INSTANCE.getServices().isEmpty() ) {
             new ServiceMatrix("service-matrix.properties");
         }
