@@ -4,10 +4,6 @@ The walt.id wallet backend provides the API and backend business logic for the w
 Additionally, it includes a reference implementation of a Verifier and Issuer
 Portal backend.
 
-In the [MicroBlock](https://www.tuni.fi/en/research/microblock-advancing-exchange-micro-credentials-ebsi) project the backend has been modified to issue micro
-credentials using the [edclexcel2ebsi](https://github.com/MicroBlock-TAU/edclexcel2ebsi) library which creates credentiasl from EDCL
-data stored to an Excel file. It works with a modified version of the [issuer portal](https://github.com/MicroBlock-TAU/waltid-issuer-portal).
-
 The provided services include:
 
 ### Web wallet backend
